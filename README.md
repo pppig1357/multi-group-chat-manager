@@ -1,4 +1,7 @@
-# 🦞 multi-group-chat-manager v1.0.0
+# 🦞 multi-group-chat-manager v1.1.0
+
+[![GitHub](https://img.shields.io/badge/GitHub-pppig1357%2Fmulti--group--chat--manager-blue?logo=github)](https://github.com/pppig1357/multi-group-chat-manager)
+[![ClawHub](https://img.shields.io/badge/ClawHub-multi--group--chat--manager-purple)](https://clawhub.ai/skills/multi-group-chat-manager)
 
 > **一份让 AI 更懂群友的多群聊管理 AgentSkill**
 >
