@@ -371,9 +371,119 @@ class FluidMemory:
         """
         从记忆内容中提取有意义的匹配关键词。
         返回多个粒度的关键词（最完整 + 核心名词）。
+        覆盖常见中文动作句式和独立名词提取。
         """
+        import re
+
         # 常见中文动作前缀（按长度降序优先匹配）
-        # 注意："爱吃""爱玩"这类不是通用前缀，保留作为完整关键词的一部分
+        # 覆盖：喜欢做某事、正在做某事、经常做某事、想/会/能/在做某事
+        prefixes = sorted([
+            # 喜欢 + 动词
+            "喜欢吃", "喜欢打", "喜欢玩", "喜欢看", "喜欢听",
+            "喜欢写", "喜欢画", "喜欢做", "喜欢搞", "喜欢学",
+            "喜欢研究", "喜欢创作", "喜欢分享", "喜欢讨论",
+            # 正在 + 动词
+            "正在自学", "正在学习", "正在玩", "正在做", "正在看",
+            "正在写", "正在画", "正在搞", "正在研究",
+            # 经常/偶尔 + 动词
+            "经常熬夜", "经常玩", "经常打", "经常看", "经常写",
+            "经常熬夜打",
+            # 单双字前缀（先长后短）
+            "喜欢",
+            "在自学", "在学习", "在研究", "在开发",
+            "在玩", "在打", "在看", "在写", "在画",
+            "在做", "在搞", "在学",
+            "想要", "希望",
+            "正在", "可以", "经常", "偶尔", "总是",
+            "推荐了", "分享了一个",
+            "自学", "学习", "研究", "开发",
+            "玩", "打", "写", "画", "做", "搞", "看", "听",
+            "推荐", "分享", "讨论",
+            "会", "想", "要", "能", "在",
+            "爱玩", "爱吃", "爱打", "爱看", "爱听",
+            "爱写", "爱画", "爱做", "爱搞", "爱学",
+        ], key=lambda x: -len(x))
+
+        # 常见虚词/标点——去掉不改变语义的部分
+        removals = {"的", "和", "与", "了", "着", "过", "就", "还",
+                    "，", "、", "。", "！", "？", "：", "；", "…", "～"}
+
+        # 提取所有关键词（多粒度）
+        keywords = set()
+
+        # ============ 基础策略
+
+        # 1️⃣ 完整内容本身作为一个关键词
+        if len(content) >= 2:
+            keywords.add(content)
+
+        # 去掉虚词得到纯骨干文本
+        text = "".join(ch for ch in content if ch not in removals)
+
+        # ============ 去前缀策略
+
+        # 2️⃣ 去掉动作前缀，获取核心名词/主题词
+        stripped = text
+        for p in prefixes:
+            if stripped.startswith(p):
+                stripped = stripped[len(p):]
+                break
+
+        # 3️⃣ 如果没找到前缀，尝试「爱/在」等单字动词剥离
+        if stripped == text:
+            single_verbs = {"爱", "想", "会", "能", "要", "在",
+                           "有", "被", "去", "来", "上", "搞"}
+            for sv in single_verbs:
+                if stripped.startswith(sv):
+                    stripped = stripped[len(sv):]
+                    break
+
+        if stripped and len(stripped) >= 2:
+            keywords.add(stripped)
+
+        # ============ 英文/数字部分
+
+        # 4️⃣ 提取独立 English/numeric 词
+        eng_parts = re.findall(r'[a-zA-Z][a-zA-Z0-9._\-+#]+', content)
+        for e in eng_parts:
+            if len(e) >= 2:
+                keywords.add(e)
+
+        # ============ 中文 n-gram 子串提取（精选版，避免噪音）
+
+        # 5️⃣ 从原内容中提取有语义的 2-4 字中文片段
+        #    只取头尾，避免中间段噪音子串占据关键词名额
+        chinese_segments = re.findall(r'[\u4e00-\u9fff]{2,}', content)
+        for seg in chinese_segments:
+            slen = len(seg)
+            if slen <= 2:
+                keywords.add(seg)
+            elif slen <= 4:
+                keywords.add(seg)
+                for i in range(slen - 1):
+                    keywords.add(seg[i:i+2])
+            else:  # slen >= 5
+                # 头部 2-4 字（动作/描述词）
+                for l in range(2, min(5, slen + 1)):
+                    keywords.add(seg[:l])
+                # 尾部 2-4 字（核心名词短语）
+                for l in range(2, min(5, slen + 1)):
+                    keywords.add(seg[-l:])
+
+        # 6️⃣ 从 stripped（去前缀核心词）中提取 2 字子串
+        #    确保「空洞骑士」→「空洞」「骑士」都被捕获
+        chinese_only = re.findall(r'[\u4e00-\u9fff]{2,}', stripped)
+        for c in chinese_only:
+            if len(c) >= 2 and c not in content:
+                keywords.add(c)
+            # 从核心词中取 2 字子串
+            for i in range(len(c) - 1):
+                sub = c[i:i+2]
+                keywords.add(sub)
+
+        # 按长度降序，优先返回更长、更独特的关键词
+        result = sorted(keywords, key=lambda x: (-len(x), x))
+        return result[:10]  # 放宽到 10 个，容纳短关键词爱吃""爱玩"这类不是通用前缀，保留作为完整关键词的一部分
         prefixes = sorted([
             "喜欢玩", "喜欢吃", "喜欢打", "喜欢看", "喜欢听",
             "经常熬夜", "经常", "偶尔", "总是",
@@ -465,17 +575,33 @@ class FluidMemory:
 
         for mem in active:
             content = mem["content"]
+            content_lower = content.lower()
 
             # 策略1：完整内容子串匹配（适合短句）
-            matched = content.lower() in all_text
+            matched = content_lower in all_text
 
             # 策略2：关键词匹配（适合长句）
             if not matched:
                 keywords = self._extract_keywords(content)
                 for kw in keywords:
-                    if kw.lower() in all_text:
+                    kw_lower = kw.lower()
+                    if kw_lower in all_text:
                         matched = True
                         break
+
+            # 策略3：字符级重叠度判断（适合长句子中的短关键词）
+            if not matched:
+                # 对 2-8 字的中短内容，直接检查所有逐字符子串
+                # 可以捕获「经常熬夜打游戏」中的「熬夜」
+                if 2 <= len(content) <= 8:
+                    for i in range(len(content) - 1):
+                        for j in range(i + 2, min(i + 5, len(content) + 1)):
+                            sub = content[i:j]
+                            if len(sub) >= 2 and sub.lower() in all_text:
+                                matched = True
+                                break
+                        if matched:
+                            break
 
             if matched:
                 self.reinforce(user_id, content)

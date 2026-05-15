@@ -332,6 +332,46 @@ def fmt_timestamp(ts: int) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _parse_timestamp(value: str) -> Optional[int]:
+    """
+    解析时间参数，同时支持：
+    - Unix 秒级时间戳（如 1715731200）
+    - ISO 8601 字符串（如 "2026-05-14T10:00:00" / "2026-05-14 10:00:00"）
+    返回 Unix 时间戳(int)，解析失败返回 None。
+    """
+    if value is None:
+        return None
+    if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
+        return int(value)
+    if isinstance(value, str):
+        # 尝试多种日期格式
+        for fmt in [
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S%z",
+            "%Y-%m-%d %H:%M:%S%z",
+            "%Y-%m-%d",
+        ]:
+            try:
+                dt = datetime.strptime(value, fmt)
+                # 默认视为 GMT+8
+                return int(dt.replace(tzinfo=timezone(timedelta(hours=8))).timestamp())
+            except ValueError:
+                continue
+    return None
+
+
+class ParseTS:
+    """argparse type 工厂：接受 int 时间戳或 ISO 日期字符串"""
+    def __call__(self, value: str) -> Optional[int]:
+        return _parse_timestamp(value)
+    def __repr__(self):
+        return "时间戳(int) 或 ISO 日期字符串"
+
+
+parse_timestamp = ParseTS()
+
+
 # ═════════════════════════════════════════════════════════
 # CLI 入口
 # ═════════════════════════════════════════════════════════
@@ -587,8 +627,8 @@ if __name__ == "__main__":
     # fetch - 按时间范围采集
     p_fetch = sub.add_parser("fetch", help="按时间范围采集群消息")
     p_fetch.add_argument("--group-id", required=True, help="QQ 群号（必填）")
-    p_fetch.add_argument("--since", type=int, default=None, help="起始时间戳")
-    p_fetch.add_argument("--until", type=int, default=None, help="截止时间戳")
+    p_fetch.add_argument("--since", type=parse_timestamp, default=None, help="起始时间戳或 ISO 日期(如 2026-05-14T10:00:00)")
+    p_fetch.add_argument("--until", type=parse_timestamp, default=None, help="截止时间戳或 ISO 日期")
     p_fetch.add_argument("--since-seq", type=int, default=None, help="起始 message_seq")
     p_fetch.add_argument("--until-seq", type=int, default=None, help="截止 message_seq")
     p_fetch.add_argument("--count", type=int, default=500, help="最大拉取数")
@@ -601,15 +641,15 @@ if __name__ == "__main__":
     # users - 按用户聚合
     p_users = sub.add_parser("users", help="按用户聚合统计")
     p_users.add_argument("--group-id", required=True, help="QQ 群号（必填）")
-    p_users.add_argument("--since", type=int, default=None, help="起始时间戳")
-    p_users.add_argument("--until", type=int, default=None, help="截止时间戳")
+    p_users.add_argument("--since", type=parse_timestamp, default=None, help="起始时间戳或 ISO 日期")
+    p_users.add_argument("--until", type=parse_timestamp, default=None, help="截止时间戳或 ISO 日期")
     p_users.add_argument("--count", type=int, default=500, help="最大拉取数")
 
     # scan - 全流程扫描（方向一+方向二+方向七集成）
     p_scan = sub.add_parser("scan", help="全流程扫描：采集→好感度→画像强化")
     p_scan.add_argument("--group-id", required=True, help="QQ 群号（必填）")
-    p_scan.add_argument("--since", type=int, default=None, help="起始时间戳")
-    p_scan.add_argument("--until", type=int, default=None, help="截止时间戳")
+    p_scan.add_argument("--since", type=parse_timestamp, default=None, help="起始时间戳或 ISO 日期")
+    p_scan.add_argument("--until", type=parse_timestamp, default=None, help="截止时间戳或 ISO 日期")
     p_scan.add_argument("--max-msgs", type=int, default=500, help="最大消息数")
     p_scan.add_argument("--no-affection", action="store_true", help="跳过好感度更新")
     p_scan.add_argument("--no-profile", action="store_true", help="跳过画像强化（仅采集+好感度）")

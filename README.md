@@ -1,4 +1,4 @@
-# 🦞 multi-group-chat-manager v1.1.0
+# 🦞 multi-group-chat-manager v1.1.4
 
 [![GitHub](https://img.shields.io/badge/GitHub-pppig1357%2Fmulti--group--chat--manager-blue?logo=github)](https://github.com/pppig1357/multi-group-chat-manager)
 [![ClawHub](https://img.shields.io/badge/ClawHub-multi--group--chat--manager-purple)](https://clawhub.ai/skills/multi-group-chat-manager)
@@ -157,6 +157,28 @@ score = e^(-0.05 × days) + 0.2 × log(1 + access_count)
 ---
 
 ## 📜 更新日志
+
+### v1.1.4 (2026-05-15) — Bug 修复 + CLI 兼容性优化 🐛
+
+> **修复三个运行时 Bug，改善 Windows 兼容性。**
+
+**🐛 Bug 修复**
+
+- **B1（rule_engine）**：空消息导致 `NoneType.strip` 报错
+  - `_get_message_text()` 增加 `isinstance` 防御性检查
+  - `_match_keyword_rule()` 空文本兜底处理
+- **B2（memory）**：画像强化关键词匹配未命中
+  - 扩充前缀列表至 60+ 条（覆盖「在学」「爱写」「喜欢研究」等常见句式）
+  - 中文 n-gram 提取改进：前缀+后缀双向滑窗，确保核心词不漏
+  - `reinforce_by_messages` 新增策略3：短内容逐字符子串扫描
+- **B3（onebot_collector）**：`--since/--until` 只接受 int 时间戳
+  - 新增 `_parse_timestamp()`，同时支持 int 时间戳和 ISO 日期字符串
+  - 支持格式：`1715731200`、`2026-05-14T10:00:00`、`2026-05-14 10:00:00`
+  - 默认时区 GMT+8
+
+**🔧 改进**
+
+- CLI 指令前缀从 `python` 改为 `py`（Windows `python.exe` 存根兼容）
 
 ### v1.0.0 (2026-05-11) — 正式发布 🚀
 

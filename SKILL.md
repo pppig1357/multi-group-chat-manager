@@ -4,7 +4,7 @@ repository: https://github.com/pppig1357/multi-group-chat-manager
 description: 用户画像+好感度双系统 + 自研液态记忆引擎。零外部依赖（核心），仅 OneBot 采集器使用 requests。画像使用自研 FluidMemory 引擎追踪用户特征，支持艾宾浩斯遗忘曲线衰减+自动关键词匹配强化。好感度基于群规加减分系统，JSON文件+文件锁保护。全配置统一化：config.json 集中管理，热加载不重启。多群聊上下线管理：基于时间戳区间精准扫描。OneBot 采集器+好感度规则引擎，规则文件化管理，支持多群差异化规则，水位线去重，auto/ai 双模式。扫描流水线集成采集→好感度→画像强化三阶段。
 ---
 
-# 🦞 multi-group-chat-manager v1.1.0
+# 🦞 multi-group-chat-manager v1.1.4
 
 多群聊用户画像管理 + 好感度系统。
 
@@ -91,7 +91,7 @@ cp scripts/rules/rule_sample.json scripts/rules/rule_你的群号.json
 
 ```bash
 # 对核心成员批量设置初始好感度
-python scripts/affection.py init 群友QQ号 85
+py scripts/affection.py init 群友QQ号 85
 
 # 或批量导入（编辑 config.json 的 small_group_ids 后，逐条执行）
 ```
@@ -113,16 +113,16 @@ logs/             # 好感度日志
 
 ```bash
 # 检查好感度系统
-python scripts/affection.py status
+py scripts/affection.py status
 
 # 检查液态记忆引擎
-python scripts/memory.py stats
+py scripts/memory.py stats
 
 # 检查 OneBot 连接（QQ 渠道）
-python scripts/onebot_collector.py health
+py scripts/onebot_collector.py health
 
 # 查看规则引擎状态
-python scripts/rule_engine.py list
+py scripts/rule_engine.py list
 ```
 
 ### 第七步（可选）：配置 AI 助手调用
@@ -524,82 +524,82 @@ score = e^(-0.05 × days_passed) + 0.2 × log(1 + access_count)
 
 ```bash
 # 查看好感度系统状态
-python scripts/affection.py status
+py scripts/affection.py status
 
 # 设置初始好感度
-python scripts/affection.py init <用户ID> <分数>
+py scripts/affection.py init <用户ID> <分数>
 
 # 查看所有规则
-python scripts/affection.py rules
+py scripts/affection.py rules
 
 # 查看液态记忆状态
-python scripts/memory.py stats
+py scripts/memory.py stats
 
 # 检查 OneBot 连接
-python scripts/onebot_collector.py health
+py scripts/onebot_collector.py health
 ```
 
 ### 上下线管理
 
 ```bash
-python scripts/session_state.py online                                # 上线
-python scripts/session_state.py offline --chat_id <id> --name "群名"  # 指定群下线
-python scripts/session_state.py offline --all                         # 全部下线
-python scripts/session_state.py register <chat_id> --name "群名"      # 注册活跃群
-python scripts/session_state.py status                                # 查看状态
+py scripts/session_state.py online                                # 上线
+py scripts/session_state.py offline --chat_id <id> --name "群名"  # 指定群下线
+py scripts/session_state.py offline --all                         # 全部下线
+py scripts/session_state.py register <chat_id> --name "群名"      # 注册活跃群
+py scripts/session_state.py status                                # 查看状态
 ```
 
 ### 好感度
 
 ```bash
-python scripts/affection.py add <用户ID> <规则key> [原因]
-python scripts/affection.py get <用户ID>               # 仅分数
-python scripts/affection.py detail <用户ID>             # 详细（管理员用）
-python scripts/affection.py brief <用户ID> [小时数]    # 简要（群友自查用）
-python scripts/affection.py init <用户ID> <分数>        # 设置初始值
-python scripts/affection.py status                      # 系统状态
-python scripts/affection.py rules                       # 查看所有规则
+py scripts/affection.py add <用户ID> <规则key> [原因]
+py scripts/affection.py get <用户ID>               # 仅分数
+py scripts/affection.py detail <用户ID>             # 详细（管理员用）
+py scripts/affection.py brief <用户ID> [小时数]    # 简要（群友自查用）
+py scripts/affection.py init <用户ID> <分数>        # 设置初始值
+py scripts/affection.py status                      # 系统状态
+py scripts/affection.py rules                       # 查看所有规则
 ```
 
 ### 画像系统
 
 ```bash
-python scripts/profiles.py load <用户ID>                           # 加载画像
-python scripts/profiles.py update <用户ID> --json '<traits>' --source group  # 更新
-python scripts/profiles.py list                                     # 列出所有用户
-python scripts/profiles.py merge --old '<JSON>' --new '<JSON>'      # 合并数据
-python scripts/profiles.py format --profile '<JSON>'                # 格式化输出
-python scripts/profiles.py decay                                    # 全局衰减
+py scripts/profiles.py load <用户ID>                           # 加载画像
+py scripts/profiles.py update <用户ID> --json '<traits>' --source group  # 更新
+py scripts/profiles.py list                                     # 列出所有用户
+py scripts/profiles.py merge --old '<JSON>' --new '<JSON>'      # 合并数据
+py scripts/profiles.py format --profile '<JSON>'                # 格式化输出
+py scripts/profiles.py decay                                    # 全局衰减
 ```
 
 ### 规则引擎
 
 ```bash
-python scripts/rule_engine.py list                  # 列出有规则文件的群
-python scripts/rule_engine.py status <群号>          # 查看状态
-python scripts/rule_engine.py eval <群号> --message '{...}'  # 单条评估
-python scripts/rule_engine.py batch <群号> --file msgs.json    # 批量评估
-python scripts/rule_engine.py reset --group <群号>  # 重置计数器
-python scripts/rule_engine.py apply <用户ID> <规则key> "原因"  # 手动加减分
+py scripts/rule_engine.py list                  # 列出有规则文件的群
+py scripts/rule_engine.py status <群号>          # 查看状态
+py scripts/rule_engine.py eval <群号> --message '{...}'  # 单条评估
+py scripts/rule_engine.py batch <群号> --file msgs.json    # 批量评估
+py scripts/rule_engine.py reset --group <群号>  # 重置计数器
+py scripts/rule_engine.py apply <用户ID> <规则key> "原因"  # 手动加减分
 ```
 
 ### 液态记忆底层
 
 ```bash
-python scripts/memory.py store <用户ID> <内容> --tags tag1 tag2 --field preference
-python scripts/memory.py recall <用户ID> --query '关键词' --top_k 5
-python scripts/memory.py forget <用户ID> <关键词>
-python scripts/memory.py stats [--user_id 用户ID]
-python scripts/memory.py decay
+py scripts/memory.py store <用户ID> <内容> --tags tag1 tag2 --field preference
+py scripts/memory.py recall <用户ID> --query '关键词' --top_k 5
+py scripts/memory.py forget <用户ID> <关键词>
+py scripts/memory.py stats [--user_id 用户ID]
+py scripts/memory.py decay
 ```
 
 ### OneBot 采集器
 
 ```bash
-python scripts/onebot_collector.py health                              # 连接检查
-python scripts/onebot_collector.py fetch --group-id <群号> --count 500 # 按范围采集
-python scripts/onebot_collector.py scan --group-id <群号> --max-msgs 500  # 全流程
-python scripts/onebot_collector.py scan --no-affection                 # 跳过好感度
-python scripts/onebot_collector.py scan --no-profile                   # 跳过画像强化
-python scripts/onebot_collector.py scan --dry-run                      # 干跑模式
+py scripts/onebot_collector.py health                              # 连接检查
+py scripts/onebot_collector.py fetch --group-id <群号> --count 500 # 按范围采集
+py scripts/onebot_collector.py scan --group-id <群号> --max-msgs 500  # 全流程
+py scripts/onebot_collector.py scan --no-affection                 # 跳过好感度
+py scripts/onebot_collector.py scan --no-profile                   # 跳过画像强化
+py scripts/onebot_collector.py scan --dry-run                      # 干跑模式
 ```

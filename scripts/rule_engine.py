@@ -148,34 +148,47 @@ class RuleEngine:
     # ── 消息匹配 ──
 
     def _get_message_text(self, message: dict) -> str:
-        """从消息中提取文本内容"""
+        """从消息中提取文本内容，安全处理 None 值"""
+        if not isinstance(message, dict):
+            return ""
         # 兼容 onebot_collector 输出（text 字段）
-        text = message.get("text", "")
-        if text:
-            return str(text)
+        text = message.get("text")
+        if text and isinstance(text, str):
+            return text
         # 兼容标准 OneBot 格式（message 数组）
-        msg = message.get("message", "")
+        msg = message.get("message")
         if isinstance(msg, list):
             parts = []
             for seg in msg:
-                if seg.get("type") == "text":
-                    parts.append(seg.get("data", {}).get("text", ""))
+                if isinstance(seg, dict) and seg.get("type") == "text":
+                    t = seg.get("data", {})
+                    if isinstance(t, dict):
+                        parts.append(t.get("text", ""))
             return " ".join(parts)
-        return str(msg)
+        if isinstance(msg, str):
+            return msg
+        return ""
+
 
     def _match_keyword_rule(self, text: str, rule: dict) -> bool:
-        """关键词匹配"""
+        """关键词匹配，安全处理空文本"""
+        if not text or not isinstance(text, str):
+            return False
         cond = rule.get("conditions", {})
+        if not isinstance(cond, dict):
+            return False
         keywords = cond.get("keywords", [])
-        match_type = cond.get("match_type", "any")
-
         if not keywords:
             return False
+        match_type = cond.get("match_type", "any")
 
-        if match_type == "all":
-            return all(kw in text for kw in keywords)
-        else:
-            return any(kw in text for kw in keywords)
+        try:
+            if match_type == "all":
+                return all(kw in text for kw in keywords)
+            else:
+                return any(kw in text for kw in keywords)
+        except TypeError:
+            return False
 
     def _detect_spam(self, messages: list, rule: dict) -> dict:
         """
