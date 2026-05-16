@@ -483,16 +483,25 @@ def _call_affection_add(user_id: str, rule_key: str, reason: str) -> dict:
     """
     通过子进程调用 affection.py,避免直接的 Python 模块导入兼容性问题。
     返回 { "status": "ok" | "error", "score": float }
+
+    注意: 不能用 text=True,因为
+    1) Windows + 中文 locale 会用 GBK 解码管道,
+    2) affection.py 输出 emoji(⭐)，GBK 无法解码
+    3) reader thread 静默崩溃 → r.stdout = None → .strip() 爆罢
     """
     import subprocess
     try:
         r = subprocess.run(
             [sys.executable, str(SCRIPT_DIR / "affection.py"),
              "add", user_id, rule_key, reason],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, timeout=15,
         )
+        # 手动解码，避免 text=True 引发的 GBK 解码失败
+        stdout = r.stdout.decode('utf-8', errors='replace') if r.stdout else ""
+        stderr = r.stderr.decode('utf-8', errors='replace') if r.stderr else ""
+
         if r.returncode == 0:
-            lines = r.stdout.strip().split("\n")
+            lines = stdout.split("\n")
             for line in lines:
                 if "当前分数" in line:
                     import re
@@ -501,7 +510,7 @@ def _call_affection_add(user_id: str, rule_key: str, reason: str) -> dict:
                         return {"status": "ok", "score": float(m.group())}
             return {"status": "ok", "score": None}
         else:
-            return {"status": "error", "error": r.stderr.strip()}
+            return {"status": "error", "error": stderr}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 

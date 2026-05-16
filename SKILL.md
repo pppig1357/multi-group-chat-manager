@@ -4,7 +4,7 @@ repository: https://github.com/pppig1357/multi-group-chat-manager
 description: 用户画像+好感度双系统 + 自研液态记忆引擎。零外部依赖（核心），仅 OneBot 采集器使用 requests。画像使用自研 FluidMemory 引擎追踪用户特征，支持艾宾浩斯遗忘曲线衰减+自动关键词匹配强化。好感度基于群规加减分系统，JSON文件+文件锁保护。全配置统一化：config.json 集中管理，热加载不重启。多群聊上下线管理：基于时间戳区间精准扫描。OneBot 采集器+好感度规则引擎，规则文件化管理，支持多群差异化规则，水位线去重，auto/ai 双模式。扫描流水线集成采集→好感度→画像强化三阶段。
 ---
 
-# 🦞 multi-group-chat-manager v1.1.4
+# 🦞 multi-group-chat-manager v1.1.5
 
 多群聊用户画像管理 + 好感度系统。
 

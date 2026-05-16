@@ -1,4 +1,4 @@
-# 🦞 multi-group-chat-manager v1.1.4
+# 🦞 multi-group-chat-manager v1.1.5
 
 [![GitHub](https://img.shields.io/badge/GitHub-pppig1357%2Fmulti--group--chat--manager-blue?logo=github)](https://github.com/pppig1357/multi-group-chat-manager)
 [![ClawHub](https://img.shields.io/badge/ClawHub-multi--group--chat--manager-purple)](https://clawhub.ai/skills/multi-group-chat-manager)
@@ -157,6 +157,16 @@ score = e^(-0.05 × days) + 0.2 × log(1 + access_count)
 ---
 
 ## 📜 更新日志
+
+### v1.1.5 (2026-05-16) — subprocess 编码修复 🔧
+
+> **修复 Windows GBK 编码导致的 subprocess pipe 崩溃。**
+
+**🐛 Bug 修复**
+
+- **B1（onebot_collector）**：扫描后好感度全部 `NoneType.strip` 报错
+  - **根因**：`_call_affection_add()` 使用 `subprocess.run(text=True)`，Windows 中文 locale 用 GBK 解码管道；affection.py 输出 emoji 导致 `UnicodeDecodeError`，reader thread 静默崩溃 → `r.stdout=None`
+  - **修复**：移除 `text=True`，改用手动 bytes 解码 `r.stdout.decode('utf-8', errors='replace')`
 
 ### v1.1.4 (2026-05-15) — Bug 修复 + CLI 兼容性优化 🐛
 
