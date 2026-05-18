@@ -14,6 +14,12 @@ description: 用户画像+好感度双系统 + 自研液态记忆引擎。零外
 
 ---
 
+## Signals
+
+`group_chat_management` `user_profiling` `sentiment_scoring` `affection_tracking` `fluid_memory` `ebbinghaus_forgetting_curve` `behavior_analysis` `personality_tracking` `session_lifecycle` `onebot_integration` `multi_platform_chat` `chat_moderation` `rule_engine` `auto_moderation` `privacy_preserving` `zero_dependency_storage` `config_hot_reload` `timestamp_range_scanning` `keyword_reinforcement` `image_avatar_generation`
+
+---
+
 ## 📋 目录
 
 - [🆕 初始化流程（首次部署看这里）](#-初始化流程首次部署看这里)
